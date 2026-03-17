@@ -133,6 +133,31 @@ export const themePresets: ThemePreset[] = [
       gradientDirection: "225deg",
     },
   },
+  {
+    id: "sunlit-studio",
+    name: "Sunlit Studio",
+    eyebrow: "Radiant",
+    blurb: "Golden warmth, soft surfaces, and a brighter creative-tool energy.",
+    config: {
+      radius: 26,
+      shadow: 44,
+      spacing: 21,
+      fontFamily: "manrope",
+      fontScale: 103,
+      containerWidth: 86,
+      buttonRoundness: 999,
+      textColor: "#2a1f19",
+      mutedTextColor: "#7a685d",
+      backgroundColor: "#fff6e7",
+      surfaceColor: "#fffdf8",
+      accentColor: "#f29b38",
+      buttonColor: "#e56a2c",
+      useGradient: true,
+      gradientStart: "#fff3d7",
+      gradientEnd: "#ffd5a8",
+      gradientDirection: "135deg",
+    },
+  },
 ];
 
 export const defaultThemeConfig = themePresets[0].config;
@@ -188,14 +213,7 @@ export function getGradientDirectionLabel(direction: ThemeGradientDirection) {
 }
 
 export function hexToRgba(hex: string, alpha: number) {
-  const sanitized = hex.replace("#", "");
-  const normalized =
-    sanitized.length === 3
-      ? sanitized
-          .split("")
-          .map((char) => char + char)
-          .join("")
-      : sanitized;
+  const normalized = normalizeHexColor(hex)?.slice(1) ?? "000000";
 
   const red = Number.parseInt(normalized.slice(0, 2), 16);
   const green = Number.parseInt(normalized.slice(2, 4), 16);
@@ -205,14 +223,7 @@ export function hexToRgba(hex: string, alpha: number) {
 }
 
 export function getReadableTextColor(hex: string) {
-  const sanitized = hex.replace("#", "");
-  const normalized =
-    sanitized.length === 3
-      ? sanitized
-          .split("")
-          .map((char) => char + char)
-          .join("")
-      : sanitized;
+  const normalized = normalizeHexColor(hex)?.slice(1) ?? "000000";
 
   const red = Number.parseInt(normalized.slice(0, 2), 16);
   const green = Number.parseInt(normalized.slice(2, 4), 16);
@@ -220,6 +231,126 @@ export function getReadableTextColor(hex: string) {
 
   const luminance = (0.2126 * red + 0.7152 * green + 0.0722 * blue) / 255;
   return luminance > 0.58 ? "#0f172a" : "#f8fafc";
+}
+
+export function normalizeHexColor(hex: string) {
+  const sanitized = hex.trim().replace(/^#/, "").replace(/[^0-9a-f]/gi, "");
+
+  if (sanitized.length === 3) {
+    return `#${sanitized
+      .toLowerCase()
+      .split("")
+      .map((char) => char + char)
+      .join("")}`;
+  }
+
+  if (sanitized.length === 6) {
+    return `#${sanitized.toLowerCase()}`;
+  }
+
+  return null;
+}
+
+type RgbColor = {
+  r: number;
+  g: number;
+  b: number;
+};
+
+export function hexToRgb(hex: string) {
+  const normalized = normalizeHexColor(hex);
+  if (!normalized) {
+    return null;
+  }
+
+  return {
+    r: Number.parseInt(normalized.slice(1, 3), 16),
+    g: Number.parseInt(normalized.slice(3, 5), 16),
+    b: Number.parseInt(normalized.slice(5, 7), 16),
+  } satisfies RgbColor;
+}
+
+export function rgbToHex({ r, g, b }: RgbColor) {
+  const toHex = (value: number) =>
+    Math.round(Math.max(0, Math.min(255, value)))
+      .toString(16)
+      .padStart(2, "0");
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+export function mixHexColors(colorA: string, colorB: string, amount = 0.5) {
+  const first = hexToRgb(colorA) ?? { r: 0, g: 0, b: 0 };
+  const second = hexToRgb(colorB) ?? { r: 255, g: 255, b: 255 };
+  const weight = Math.max(0, Math.min(1, amount));
+
+  return rgbToHex({
+    r: first.r + (second.r - first.r) * weight,
+    g: first.g + (second.g - first.g) * weight,
+    b: first.b + (second.b - first.b) * weight,
+  });
+}
+
+export function blendHexColors(
+  foreground: string,
+  background: string,
+  alpha: number,
+) {
+  return mixHexColors(background, foreground, alpha);
+}
+
+function getRelativeLuminance(hex: string) {
+  const rgb = hexToRgb(hex) ?? { r: 0, g: 0, b: 0 };
+  const convert = (channel: number) => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : ((normalized + 0.055) / 1.055) ** 2.4;
+  };
+
+  return (
+    0.2126 * convert(rgb.r) +
+    0.7152 * convert(rgb.g) +
+    0.0722 * convert(rgb.b)
+  );
+}
+
+export function getContrastRatio(foreground: string, background: string) {
+  const light = getRelativeLuminance(foreground);
+  const dark = getRelativeLuminance(background);
+  const [brighter, dimmer] = light > dark ? [light, dark] : [dark, light];
+
+  return (brighter + 0.05) / (dimmer + 0.05);
+}
+
+export function ensureReadableTextColor(
+  foreground: string,
+  background: string,
+  minRatio = 4.5,
+) {
+  const safeForeground = normalizeHexColor(foreground) ?? "#111827";
+  const safeBackground = normalizeHexColor(background) ?? "#ffffff";
+
+  if (getContrastRatio(safeForeground, safeBackground) >= minRatio) {
+    return safeForeground;
+  }
+
+  const darkTarget = "#0f172a";
+  const lightTarget = "#f8fafc";
+  const target =
+    getContrastRatio(lightTarget, safeBackground) >=
+    getContrastRatio(darkTarget, safeBackground)
+      ? lightTarget
+      : darkTarget;
+
+  for (let step = 1; step <= 12; step += 1) {
+    const candidate = mixHexColors(safeForeground, target, step / 12);
+    if (getContrastRatio(candidate, safeBackground) >= minRatio) {
+      return candidate;
+    }
+  }
+
+  return target;
 }
 
 export function buildShadow(strength: number, color = "#0f172a") {
@@ -245,10 +376,51 @@ function describeShadow(strength: number) {
   return "cinematic";
 }
 
-export function buildThemePrompt(config: ThemeConfig) {
+type ThemePromptOptions = {
+  includeCssVariables?: boolean;
+  includeImplementationRules?: boolean;
+};
+
+export function buildThemePrompt(
+  config: ThemeConfig,
+  options: ThemePromptOptions = {},
+) {
+  const {
+    includeCssVariables = true,
+    includeImplementationRules = true,
+  } = options;
   const backgroundTreatment = config.useGradient
     ? `linear-gradient(${config.gradientDirection}, ${config.gradientStart}, ${config.gradientEnd}) layered over ${config.backgroundColor}`
     : `solid ${config.backgroundColor} with subtle tonal depth`;
+
+  const cssVariables = includeCssVariables
+    ? `
+
+CSS variables
+:root {
+  --tf-radius: ${config.radius}px;
+  --tf-button-radius: ${config.buttonRoundness}px;
+  --tf-text: ${config.textColor};
+  --tf-muted: ${config.mutedTextColor};
+  --tf-bg: ${config.backgroundColor};
+  --tf-surface: ${config.surfaceColor};
+  --tf-accent: ${config.accentColor};
+  --tf-button: ${config.buttonColor};
+}`
+    : "";
+
+  const implementationRules = includeImplementationRules
+    ? `
+
+Implementation rules
+- Apply the tokens above before styling any component details.
+- Typography should use ${getThemeFontLabel(config.fontFamily)} at roughly ${config.fontScale}% scale.
+- Cards should feel ${describeShadow(config.shadow)} with ${describeSpacing(config.spacing)} spacing.
+- Use accent color for highlights, focus states, charts, badges, and premium moments.
+- Use button color for primary CTAs and keep secondary actions lower contrast.
+- Match radius across cards, inputs, and overlays, while buttons use their own radius token.
+- Do not introduce extra brand colors unless accessibility requires it.`
+    : "";
 
   return `Use the following Theme Forge system for every UI surface, component, and landing-page section.
 
@@ -277,27 +449,8 @@ ${JSON.stringify(
   null,
   2,
 )}
-
-CSS variables
-:root {
-  --tf-radius: ${config.radius}px;
-  --tf-button-radius: ${config.buttonRoundness}px;
-  --tf-text: ${config.textColor};
-  --tf-muted: ${config.mutedTextColor};
-  --tf-bg: ${config.backgroundColor};
-  --tf-surface: ${config.surfaceColor};
-  --tf-accent: ${config.accentColor};
-  --tf-button: ${config.buttonColor};
-}
-
-Implementation rules
-- Apply the tokens above before styling any component details.
-- Typography should use ${getThemeFontLabel(config.fontFamily)} at roughly ${config.fontScale}% scale.
-- Cards should feel ${describeShadow(config.shadow)} with ${describeSpacing(config.spacing)} spacing.
-- Use accent color for highlights, focus states, charts, badges, and premium moments.
-- Use button color for primary CTAs and keep secondary actions lower contrast.
-- Match radius across cards, inputs, and overlays, while buttons use their own radius token.
-- Do not introduce extra brand colors unless accessibility requires it.
+${cssVariables}
+${implementationRules}
 
 Return production-ready UI code plus the CSS variables needed to preserve this theme.`;
 }

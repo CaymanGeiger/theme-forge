@@ -1,8 +1,16 @@
 "use client";
 
+import { Check } from "lucide-react";
 import { motion } from "motion/react";
 
-import { getThemeFontLabel } from "@/lib/theme-presets";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  getReadableTextColor,
+  getThemeFontLabel,
+  hexToRgba,
+} from "@/lib/theme-presets";
 import { type ThemePreset } from "@/lib/theme-types";
 import { cn } from "@/lib/utils";
 
@@ -40,66 +48,114 @@ export function PresetGrid({
         </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {presets.map((preset) => {
           const isActive = activePresetId === preset.id;
+          const pillTextColor = preset.config.textColor;
+          const pillBackground = hexToRgba(preset.config.textColor, 0.12);
+          const pillBorder = hexToRgba(preset.config.textColor, 0.18);
+          const activePillBackground = preset.config.buttonColor;
+          const activePillText = getReadableTextColor(preset.config.buttonColor);
+          const previewOutline = hexToRgba(preset.config.textColor, 0.16);
+          const previewShadow = "0 16px 30px rgba(15, 23, 42, 0.14)";
 
           return (
-            <button
+            <Button
               className={cn(
-                "group rounded-[30px] border p-4 text-left transition duration-200 hover:-translate-y-1",
+                "group h-auto w-full flex-col items-start justify-start rounded-[30px] border p-4 text-left whitespace-normal transition duration-200",
                 isActive
-                  ? "border-slate-900 bg-slate-900 text-white shadow-[0_24px_60px_rgba(15,23,42,0.24)]"
-                  : "border-white/80 bg-white/78 text-slate-900 shadow-[0_18px_42px_rgba(15,23,42,0.06)] hover:bg-white",
+                  ? "border-slate-900 bg-slate-900 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_1px_2px_rgba(15,23,42,0.16)] hover:bg-slate-900 hover:text-white active:text-white focus-visible:text-white aria-expanded:text-white"
+                  : "border-white/80 bg-white/78 text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.84),0_1px_2px_rgba(15,23,42,0.05)] hover:bg-white hover:text-slate-900 active:text-slate-900 focus-visible:text-slate-900 aria-expanded:text-slate-900",
               )}
               key={preset.id}
               onClick={() => onApplyPreset(preset.id)}
               type="button"
+              variant="ghost"
             >
-              <div
-                className="mb-4 overflow-hidden rounded-[24px] border border-white/20 p-4"
+              <Card
+                className="mb-4 w-full gap-0 overflow-hidden rounded-[24px] border py-0 ring-0"
                 style={{
                   background: preset.config.useGradient
                     ? `linear-gradient(${preset.config.gradientDirection}, ${preset.config.gradientStart}, ${preset.config.gradientEnd})`
                     : preset.config.backgroundColor,
+                  borderColor: previewOutline,
+                  boxShadow: `inset 0 1px 0 ${hexToRgba("#ffffff", 0.18)}`,
                 }}
               >
-                <div className="flex items-center justify-between">
-                  <span className="rounded-full bg-black/14 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
-                    {preset.eyebrow}
-                  </span>
-                  {isActive ? (
-                    <span className="rounded-full bg-white/18 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-white/90 backdrop-blur-sm">
-                      Active
-                    </span>
-                  ) : null}
-                </div>
-
-                <div className="mt-8 grid gap-2">
-                  <div
-                    className="h-16 rounded-[18px] border border-white/15"
-                    style={{ backgroundColor: preset.config.surfaceColor }}
-                  />
-                  <div className="flex gap-2">
-                    {[preset.config.accentColor, preset.config.buttonColor].map(
-                      (color) => (
-                        <div
-                          className="h-9 flex-1 rounded-[14px] border border-white/15"
-                          key={color}
-                          style={{ backgroundColor: color }}
-                        />
-                      ),
-                    )}
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+                    <div className="min-w-0">
+                      <Badge
+                        className="h-auto max-w-full justify-start overflow-hidden rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-ellipsis whitespace-nowrap backdrop-blur-sm"
+                        style={{
+                          backgroundColor: pillBackground,
+                          borderColor: pillBorder,
+                          color: pillTextColor,
+                        }}
+                      >
+                        {preset.eyebrow}
+                      </Badge>
+                    </div>
+                    {isActive ? (
+                      <span
+                        aria-label="Selected preset"
+                        className="inline-flex shrink-0 items-center justify-center rounded-full border px-2.5 py-1 backdrop-blur-sm"
+                        style={{
+                          backgroundColor: activePillBackground,
+                          borderColor: hexToRgba(activePillBackground, 0.32),
+                          color: activePillText,
+                          boxShadow:
+                            "inset 0 1px 0 rgba(255,255,255,0.18), 0 1px 2px rgba(15,23,42,0.16)",
+                        }}
+                      >
+                        <Check className="size-3.5" strokeWidth={2.75} />
+                      </span>
+                    ) : null}
                   </div>
-                </div>
-              </div>
+
+                  <div className="mt-8 grid gap-2">
+                    <Card
+                      className="h-16 gap-0 rounded-[18px] border py-0 ring-0"
+                      style={{
+                        backgroundColor: preset.config.surfaceColor,
+                        borderColor: previewOutline,
+                        boxShadow: `${previewShadow}, inset 0 1px 0 ${hexToRgba(
+                          "#ffffff",
+                          0.24,
+                        )}`,
+                      }}
+                    />
+                    <div className="flex gap-2">
+                      {[preset.config.accentColor, preset.config.buttonColor].map(
+                        (color) => (
+                          <Card
+                            className="h-9 flex-1 gap-0 rounded-[14px] border py-0 ring-0"
+                            key={color}
+                            style={{
+                              backgroundColor: color,
+                              borderColor: hexToRgba(
+                                getReadableTextColor(color),
+                                0.14,
+                              ),
+                              boxShadow: `inset 0 1px 0 ${hexToRgba(
+                                "#ffffff",
+                                0.18,
+                              )}`,
+                            }}
+                          />
+                        ),
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <p className="text-xs font-medium uppercase tracking-[0.18em] opacity-65">
                 {getThemeFontLabel(preset.config.fontFamily)}
               </p>
               <h3 className="mt-2 text-lg font-semibold">{preset.name}</h3>
               <p className="mt-3 text-sm leading-6 opacity-75">{preset.blurb}</p>
-            </button>
+            </Button>
           );
         })}
       </div>

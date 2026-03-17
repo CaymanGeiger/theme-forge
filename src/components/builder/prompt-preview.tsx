@@ -2,11 +2,29 @@
 
 import { useState } from "react";
 
-import { Check, Copy, Sparkles } from "lucide-react";
+import { Check, ChevronDown, Copy, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  buildThemePrompt,
   getGradientDirectionLabel,
   getThemeFontLabel,
   hexToRgba,
@@ -14,12 +32,20 @@ import {
 import { type ThemeConfig } from "@/lib/theme-types";
 
 type PromptPreviewProps = {
+  accentColor: string;
   config: ThemeConfig;
-  prompt: string;
 };
 
-export function PromptPreview({ config, prompt }: PromptPreviewProps) {
+export function PromptPreview({ accentColor, config }: PromptPreviewProps) {
   const [copied, setCopied] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
+  const [includeCssVariables, setIncludeCssVariables] = useState(true);
+  const [includeImplementationRules, setIncludeImplementationRules] =
+    useState(true);
+  const prompt = buildThemePrompt(config, {
+    includeCssVariables,
+    includeImplementationRules,
+  });
 
   async function handleCopy() {
     if (!navigator.clipboard) return;
@@ -36,7 +62,7 @@ export function PromptPreview({ config, prompt }: PromptPreviewProps) {
       initial={{ opacity: 0, y: 18 }}
       transition={{ duration: 0.48, ease: "easeOut" }}
     >
-      <div className="flex flex-col justify-between gap-6">
+      <div className="flex flex-col gap-6 self-start">
         <div>
           <p className="mb-2 text-sm font-medium uppercase tracking-[0.22em] text-slate-500">
             Prompt Output
@@ -49,6 +75,84 @@ export function PromptPreview({ config, prompt }: PromptPreviewProps) {
             your next AI-generated screen still looks like the same product.
           </p>
         </div>
+
+        <Collapsible
+          className="overflow-hidden rounded-[26px] border border-white/80 bg-white/74 shadow-[0_14px_36px_rgba(15,23,42,0.05)]"
+          onOpenChange={setOptionsOpen}
+          open={optionsOpen}
+        >
+          <div className="flex items-center justify-between gap-4 p-4">
+            <div>
+              <p className="text-sm font-semibold text-slate-950">
+                Prompt options
+              </p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">
+                Trim or expand the generated prompt before copying it into your
+                model.
+              </p>
+            </div>
+            <CollapsibleTrigger asChild>
+              <Button
+                className="gap-2 rounded-full border-white/80 bg-white/84 text-slate-700 shadow-none hover:bg-white"
+                size="sm"
+                variant="outline"
+              >
+                {optionsOpen ? "Hide" : "Customize"}
+                <ChevronDown
+                  className={`size-4 transition-transform ${optionsOpen ? "rotate-180" : ""}`}
+                />
+              </Button>
+            </CollapsibleTrigger>
+          </div>
+
+          <CollapsibleContent className="overflow-hidden">
+            <Separator className="bg-slate-200/80" />
+            <div className="grid gap-3 p-4">
+              <div className="flex items-start gap-3 rounded-[18px] border border-white/75 bg-white/72 p-3">
+                <Checkbox
+                  checked={includeCssVariables}
+                  id="include-css-variables"
+                  onCheckedChange={(checked) =>
+                    setIncludeCssVariables(checked === true)
+                  }
+                />
+                <div className="min-w-0">
+                  <Label
+                    className="cursor-pointer text-sm font-semibold text-slate-950"
+                    htmlFor="include-css-variables"
+                  >
+                    Include CSS variables
+                  </Label>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    Keep the token block for direct handoff into code or design
+                    systems.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 rounded-[18px] border border-white/75 bg-white/72 p-3">
+                <Checkbox
+                  checked={includeImplementationRules}
+                  id="include-implementation-rules"
+                  onCheckedChange={(checked) =>
+                    setIncludeImplementationRules(checked === true)
+                  }
+                />
+                <div className="min-w-0">
+                  <Label
+                    className="cursor-pointer text-sm font-semibold text-slate-950"
+                    htmlFor="include-implementation-rules"
+                  >
+                    Include implementation rules
+                  </Label>
+                  <p className="mt-1 text-sm leading-6 text-slate-600">
+                    Preserve the guardrails that keep generated UI consistent.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         <div className="grid gap-3 sm:grid-cols-2">
           {[
@@ -71,30 +175,34 @@ export function PromptPreview({ config, prompt }: PromptPreviewProps) {
               value: `${config.spacing}px rhythm`,
             },
           ].map((item) => (
-            <div
-              className="rounded-[24px] border border-white/80 bg-white/76 p-4 shadow-[0_14px_36px_rgba(15,23,42,0.05)]"
+            <Card
+              className="gap-0 rounded-[24px] border-white/80 bg-white/76 py-0 shadow-[0_14px_36px_rgba(15,23,42,0.05)]"
               key={item.label}
             >
-              <p className="text-sm text-slate-500">{item.label}</p>
-              <p className="mt-2 text-sm font-semibold text-slate-950">
-                {item.value}
-              </p>
-            </div>
+              <CardHeader className="p-4">
+                <CardDescription className="text-sm text-slate-500">
+                  {item.label}
+                </CardDescription>
+                <CardTitle className="text-sm font-semibold text-slate-950">
+                  {item.value}
+                </CardTitle>
+              </CardHeader>
+            </Card>
           ))}
         </div>
       </div>
 
-      <div className="relative overflow-hidden rounded-[32px] border border-slate-900/10 bg-[#0b1020] p-4 shadow-[0_28px_90px_rgba(15,23,42,0.18)] sm:p-5">
+      <Card className="relative gap-0 overflow-hidden rounded-[32px] border-slate-900/10 bg-[#0b1020] py-0 text-white shadow-[0_28px_90px_rgba(15,23,42,0.18)]">
         <div
           className="absolute inset-x-0 top-0 h-36"
           style={{
             background: `linear-gradient(180deg, ${hexToRgba(
-              config.accentColor,
+              accentColor,
               0.22,
             )}, transparent)`,
           }}
         />
-        <div className="relative">
+        <CardContent className="relative p-4 sm:p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
@@ -102,16 +210,16 @@ export function PromptPreview({ config, prompt }: PromptPreviewProps) {
                 <span className="size-2.5 rounded-full bg-amber-300" />
                 <span className="size-2.5 rounded-full bg-emerald-400" />
               </div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white/72">
+              <Badge className="h-auto rounded-full border-white/10 bg-white/6 px-3 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-white/72">
                 <Sparkles className="size-3.5" />
                 Theme prompt
-              </div>
+              </Badge>
             </div>
             <Button
-              className="bg-white/10 text-white shadow-none hover:bg-white/14"
+              className="border-white/10 bg-white/10 text-white shadow-none hover:bg-white/14"
               onClick={handleCopy}
               size="sm"
-              variant="secondary"
+              variant="outline"
             >
               {copied ? (
                 <>
@@ -127,11 +235,13 @@ export function PromptPreview({ config, prompt }: PromptPreviewProps) {
             </Button>
           </div>
 
-          <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap rounded-[26px] border border-white/10 bg-black/18 p-5 font-[family-name:var(--font-mono)] text-sm leading-7 text-white/82">
-            {prompt}
-          </pre>
-        </div>
-      </div>
+          <Textarea
+            className="min-h-[520px] resize-none rounded-[26px] border-white/10 bg-black/18 p-5 font-[family-name:var(--font-mono)] text-sm leading-7 text-white/82 placeholder:text-white/45 focus-visible:border-white/20 focus-visible:ring-white/10"
+            readOnly
+            value={prompt}
+          />
+        </CardContent>
+      </Card>
     </motion.section>
   );
 }
