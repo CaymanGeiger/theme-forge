@@ -53,10 +53,6 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   min-height: 100vh;
   font-family: var(--font-inter), sans-serif;
@@ -89,6 +85,49 @@ a {
 
 .balanced-text {
   text-wrap: balance;
+}
+
+.brand-spectrum {
+  color: transparent;
+  background-image:
+    linear-gradient(
+      120deg,
+      #1f2937 0%,
+      #4f7cff 24%,
+      #1cc8be 48%,
+      #f77043 73%,
+      #111827 100%
+    );
+  background-size: 220% 220%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: brand-spectrum-shift 9s ease-in-out infinite;
+}
+
+.brand-spectrum-shell {
+  background-image:
+    linear-gradient(
+      120deg,
+      rgba(31, 41, 55, 0.92) 0%,
+      rgba(79, 124, 255, 0.98) 24%,
+      rgba(28, 200, 190, 0.96) 48%,
+      rgba(247, 112, 67, 0.98) 73%,
+      rgba(17, 24, 39, 0.92) 100%
+    );
+  background-size: 220% 220%;
+  animation: brand-spectrum-shift 9s ease-in-out infinite;
+}
+
+@keyframes brand-spectrum-shift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .theme-picker .react-colorful {

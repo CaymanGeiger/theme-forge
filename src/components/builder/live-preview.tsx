@@ -2,12 +2,33 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 
-import { Bell, ChevronRight, Search, Sparkles, Star } from "lucide-react";
+import {
+  AlignJustify,
+  Bell,
+  CheckCircle2,
+  ChevronRight,
+  Search,
+  Sparkles,
+  Star,
+} from "lucide-react";
 import { motion } from "motion/react";
 
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
   blendHexColors,
@@ -22,13 +43,22 @@ import { type ThemeConfig } from "@/lib/theme-types";
 
 type LivePreviewProps = {
   config: ThemeConfig;
+  variant?: "full" | "compact";
 };
 
-export function LivePreview({ config }: LivePreviewProps) {
+export function LivePreview({
+  config,
+  variant = "full",
+}: LivePreviewProps) {
   const previewFrameRef = useRef<HTMLDivElement | null>(null);
   const previewContentRef = useRef<HTMLDivElement | null>(null);
   const [frameWidth, setFrameWidth] = useState(0);
   const [contentWidth, setContentWidth] = useState(0);
+  const [previewMode, setPreviewMode] = useState<"builder" | "prompt" | "presets">(
+    "builder",
+  );
+  const [searchValue, setSearchValue] = useState("");
+  const [openTask, setOpenTask] = useState<string | null>("Hero polish pass");
 
   useEffect(() => {
     const node = previewFrameRef.current;
@@ -85,6 +115,7 @@ export function LivePreview({ config }: LivePreviewProps) {
   }, []);
 
   const scale = config.fontScale / 100;
+  const isCompact = variant === "compact";
   const spacing = config.spacing;
   const measuredFrameWidth =
     frameWidth || Math.round((config.containerWidth / 100) * 980);
@@ -105,11 +136,74 @@ export function LivePreview({ config }: LivePreviewProps) {
   const navCompact = measuredContentWidth < 760;
   const densePanelLayout = measuredContentWidth < 1120;
   const panelGap = Math.max(
-    10,
-    spacing * (compactLayout ? 0.55 : stackedLayout ? 0.6 : 0.7),
+    8,
+    Math.round(
+      config.moduleGap * (microLayout ? 0.82 : compactLayout ? 0.9 : 1),
+    ),
   );
-  const outerPanelPadding = microLayout ? 15 : compactLayout ? 18 : 20;
-  const innerCardPadding = microLayout ? 14 : compactLayout ? 15 : 16;
+  const outerPanelPadding = Math.max(
+    12,
+    Math.round(
+      config.panelPadding * (microLayout ? 0.78 : compactLayout ? 0.88 : 1),
+    ),
+  );
+  const innerCardPadding = Math.max(
+    12,
+    Math.round(
+      config.cardPadding * (microLayout ? 0.82 : compactLayout ? 0.9 : 1),
+    ),
+  );
+  const buttonHeight = Math.max(
+    38,
+    Math.round(
+      config.buttonHeight * (microLayout ? 0.84 : compactLayout ? 0.92 : 1),
+    ),
+  );
+  const buttonPaddingX = Math.max(
+    14,
+    Math.round(
+      config.buttonPaddingX * (microLayout ? 0.84 : compactLayout ? 0.92 : 1),
+    ),
+  );
+  const inputHeight = Math.max(
+    42,
+    Math.round(
+      config.inputHeight * (microLayout ? 0.84 : compactLayout ? 0.92 : 1),
+    ),
+  );
+  const inputPaddingX = Math.max(
+    12,
+    Math.round(
+      config.inputPaddingX * (microLayout ? 0.84 : compactLayout ? 0.92 : 1),
+    ),
+  );
+  const toolbarHeight = Math.max(
+    46,
+    Math.round(
+      config.toolbarHeight * (microLayout ? 0.84 : compactLayout ? 0.92 : 1),
+    ),
+  );
+  const toolbarPaddingX = Math.max(
+    16,
+    Math.round(
+      config.toolbarPaddingX * (microLayout ? 0.84 : compactLayout ? 0.92 : 1),
+    ),
+  );
+  const inputIconInset = Math.max(12, Math.round(inputPaddingX * 0.9));
+  const badgeRoundness =
+    config.badgeRoundness > 120 ? 999 : Math.max(10, config.badgeRoundness);
+  const heroContentMaxWidth = Math.max(
+    360,
+    Math.round(
+      config.heroContentMaxWidth * (microLayout ? 0.72 : compactLayout ? 0.84 : 1),
+    ),
+  );
+  const tileMinHeight = Math.max(
+    92,
+    Math.round(
+      config.tileMinHeight * (microLayout ? 0.82 : compactLayout ? 0.9 : 1),
+    ),
+  );
   const heroHeadingSize =
     measuredContentWidth < 390
       ? 1.8 * scale
@@ -126,43 +220,60 @@ export function LivePreview({ config }: LivePreviewProps) {
     measuredContentWidth < 520 ? 0.94 * scale : 1 * scale;
   const syncBadgeLabel =
     measuredContentWidth < 440
-      ? "Theme synced"
+      ? "Theme applied"
       : measuredContentWidth < 620
-        ? "System synced"
-        : "Design system synced to controls";
-  const exportLabel = measuredContentWidth < 520 ? "Export" : "Export tokens";
-  const previewButtonLabel =
-    measuredContentWidth < 520 ? "Presets" : "Preview presets";
+        ? "Workspace themed"
+        : "Theme applied across layout, cards, and controls";
+  const topActionLabel = measuredContentWidth < 520 ? "Share" : "Share view";
+  const primaryActionLabel =
+    measuredContentWidth < 520 ? "New board" : "Create board";
+  const secondaryActionLabel =
+    measuredContentWidth < 520 ? "Invite" : "Invite team";
   const minPreviewHeight =
-    measuredContentWidth < 390
-      ? 640
-      : measuredContentWidth < 560
-        ? 700
-        : measuredContentWidth < 760
-          ? 760
-          : 780;
+    isCompact
+      ? measuredContentWidth < 390
+        ? 420
+        : measuredContentWidth < 560
+          ? 470
+          : measuredContentWidth < 760
+            ? 500
+            : 540
+      : measuredContentWidth < 390
+        ? 640
+        : measuredContentWidth < 560
+          ? 700
+          : measuredContentWidth < 760
+            ? 760
+            : 780;
   const canvasBaseColor = config.useGradient
     ? mixHexColors(config.gradientStart, config.gradientEnd, 0.5)
     : config.backgroundColor;
+  const surfaceContrastMix =
+    0.72 + (config.surfaceContrast / 100) * (config.useGradient ? 0.18 : 0.24);
+  const elevatedSurfaceContrastMix = Math.min(0.98, surfaceContrastMix + 0.05);
+  const nestedSurfaceMix = 0.72 + (config.surfaceContrast / 100) * 0.18;
+  const inputSurfaceMix = 0.8 + (config.surfaceContrast / 100) * 0.16;
+  const accentTintMix = 0.08 + (config.accentTintStrength / 100) * 0.28;
+  const buttonTintMix = 0.08 + (config.accentTintStrength / 100) * 0.24;
   const surfaceColor = blendHexColors(
     config.surfaceColor,
     canvasBaseColor,
-    config.useGradient ? 0.9 : 0.96,
+    surfaceContrastMix,
   );
   const elevatedSurfaceColor = blendHexColors(
     config.surfaceColor,
     canvasBaseColor,
-    config.useGradient ? 0.94 : 0.98,
+    elevatedSurfaceContrastMix,
   );
   const nestedSurfaceColor = blendHexColors(
     config.surfaceColor,
     surfaceColor,
-    config.useGradient ? 0.82 : 0.9,
+    nestedSurfaceMix,
   );
   const inputBackgroundColor = blendHexColors(
     config.surfaceColor,
     surfaceColor,
-    config.useGradient ? 0.9 : 0.95,
+    inputSurfaceMix,
   );
   const secondaryButtonBackgroundColor = blendHexColors(
     config.surfaceColor,
@@ -173,12 +284,12 @@ export function LivePreview({ config }: LivePreviewProps) {
   const accentTintColor = blendHexColors(
     config.accentColor,
     elevatedSurfaceColor,
-    0.16,
+    accentTintMix,
   );
   const buttonTintColor = blendHexColors(
     config.buttonColor,
     elevatedSurfaceColor,
-    0.16,
+    buttonTintMix,
   );
   const canvasTextColor = ensureReadableTextColor(
     config.textColor,
@@ -250,8 +361,14 @@ export function LivePreview({ config }: LivePreviewProps) {
     secondaryButtonBackgroundColor,
     5.2,
   );
-  const borderColor = hexToRgba(surfaceTextColor, config.useGradient ? 0.16 : 0.12);
-  const softBorderColor = hexToRgba(surfaceTextColor, 0.08);
+  const borderColor = hexToRgba(
+    surfaceTextColor,
+    0.06 + (config.borderStrength / 100) * (config.useGradient ? 0.16 : 0.12),
+  );
+  const softBorderColor = hexToRgba(
+    surfaceTextColor,
+    0.03 + (config.borderStrength / 100) * 0.08,
+  );
   const previewShadow = buildShadow(config.shadow);
   const buttonTextColor = getReadableTextColor(config.buttonColor);
 
@@ -287,7 +404,8 @@ export function LivePreview({ config }: LivePreviewProps) {
     backgroundColor: config.buttonColor,
     color: buttonTextColor,
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.14)",
-    padding: `${Math.max(12, spacing * 0.62)}px ${Math.max(18, spacing * 1.1)}px`,
+    minHeight: buttonHeight,
+    padding: `0 ${buttonPaddingX}px`,
     fontSize: `${0.96 * scale}rem`,
   };
 
@@ -297,19 +415,21 @@ export function LivePreview({ config }: LivePreviewProps) {
     backgroundColor: secondaryButtonBackgroundColor,
     color: secondaryButtonTextColor,
     boxShadow: "inset 0 1px 0 rgba(255,255,255,0.65)",
-    padding: `${Math.max(12, spacing * 0.62)}px ${Math.max(18, spacing * 1.1)}px`,
+    minHeight: buttonHeight,
+    padding: `0 ${buttonPaddingX}px`,
     fontSize: `${0.96 * scale}rem`,
   };
 
   const inputStyle: CSSProperties & { "--tf-input-muted": string } = {
-    borderRadius: config.radius * 0.8,
+    borderRadius: config.inputRoundness,
     border: `1px solid ${softBorderColor}`,
     backgroundColor: inputBackgroundColor,
     color: inputTextColor,
-    paddingTop: Math.max(14, spacing * 0.7),
-    paddingRight: Math.max(16, spacing),
-    paddingBottom: Math.max(14, spacing * 0.7),
-    paddingLeft: 44,
+    minHeight: inputHeight,
+    paddingTop: Math.max(10, Math.round((inputHeight - 22) / 2)),
+    paddingRight: inputPaddingX,
+    paddingBottom: Math.max(10, Math.round((inputHeight - 22) / 2)),
+    paddingLeft: inputIconInset + 24,
     boxShadow: `inset 0 1px 0 ${hexToRgba("#ffffff", 0.55)}`,
     "--tf-input-muted": inputMutedColor,
   };
@@ -334,6 +454,171 @@ export function LivePreview({ config }: LivePreviewProps) {
           : "repeat(auto-fit, minmax(132px, 1fr))",
   };
 
+  const previewScenes = {
+    builder: {
+      syncLabel: syncBadgeLabel,
+      heroHeading:
+        "Preview how your theme feels inside a real product workspace.",
+      heroCopy:
+        "This sample dashboard updates typography, spacing, radius, surfaces, and buttons together so you can judge the whole system at a glance.",
+      panelTitle: "Project queue",
+      panelSubtitle: "Sample cards, forms, and team actions",
+      searchPlaceholder: "Search projects or tasks",
+      statCards: isCompact
+        ? [
+            { label: "Open projects", value: "12" },
+            { label: "Tasks this week", value: "16" },
+          ]
+        : [
+            { label: "Open projects", value: "12" },
+            { label: "Team velocity", value: "94%" },
+            { label: "Tasks this week", value: "16" },
+          ],
+      taskCards: isCompact
+        ? [
+            {
+              title: "Homepage refresh",
+              detail: "Review hierarchy, refine CTA weight, and confirm spacing.",
+            },
+          ]
+        : [
+            {
+              title: "Homepage refresh",
+              detail: "Review hierarchy, refine CTA weight, and confirm spacing.",
+            },
+            {
+              title: "Analytics rollout",
+              detail: "Test denser cards and tighter tables without losing clarity.",
+            },
+          ],
+      signalTitle: "Performance snapshot",
+      signalCards: isCompact
+        ? [{ title: "Launch status", value: "Focused" }]
+        : [
+            { title: "Launch status", value: "Focused" },
+            { title: "Review health", value: "High" },
+          ],
+    },
+    prompt: {
+      syncLabel:
+        measuredContentWidth < 520
+          ? "Report mode"
+          : "Reporting view active",
+      heroHeading: "Check the same theme in a denser reporting screen.",
+      heroCopy:
+        "A second layout helps you test contrast, hierarchy, and reading comfort before the style reaches more complex pages.",
+      panelTitle: "Report center",
+      panelSubtitle: "Saved views, alerts, and team summaries",
+      searchPlaceholder: "Search reports or owners",
+      statCards: isCompact
+        ? [
+            { label: "Saved reports", value: "04" },
+            { label: "Review cycles", value: "07" },
+          ]
+        : [
+            { label: "Saved reports", value: "04" },
+            { label: "Active alerts", value: "11" },
+            { label: "Review cycles", value: "07" },
+          ],
+      taskCards: isCompact
+        ? [
+            {
+              title: "Revenue summary",
+              detail:
+                "Check tables, highlights, and supporting text against the same theme.",
+            },
+          ]
+        : [
+            {
+              title: "Revenue summary",
+              detail:
+                "Check tables, highlights, and supporting text against the same theme.",
+            },
+            {
+              title: "Billing review",
+              detail:
+                "Make sure denser layouts still feel readable and consistently weighted.",
+            },
+          ],
+      signalTitle: "Insight tiles",
+      signalCards: isCompact
+        ? [{ title: "Trend line", value: "Stable" }]
+        : [
+            { title: "Trend line", value: "Stable" },
+            { title: "Attention areas", value: "2" },
+          ],
+    },
+    presets: {
+      syncLabel:
+        measuredContentWidth < 520
+          ? "Board mode"
+          : "Alternate layout active",
+      heroHeading: "Pressure-test the theme in a busier planning surface.",
+      heroCopy:
+        "Switching to a more crowded workspace makes it easier to spot whether spacing, color, and hierarchy still feel balanced.",
+      panelTitle: "Planning board",
+      panelSubtitle: "A denser sample layout for cards and labels",
+      searchPlaceholder: "Search boards or releases",
+      statCards: isCompact
+        ? [
+            { label: "Board groups", value: "06" },
+            { label: "Cards active", value: "12" },
+          ]
+        : [
+            { label: "Board groups", value: "06" },
+            { label: "Density checks", value: "09" },
+            { label: "Cards active", value: "12" },
+          ],
+      taskCards: isCompact
+        ? [
+            {
+              title: "Sprint planning",
+              detail: "Compare nested cards, labels, and callouts in a denser view.",
+            },
+          ]
+        : [
+            {
+              title: "Sprint planning",
+              detail: "Compare nested cards, labels, and callouts in a denser view.",
+            },
+            {
+              title: "Release board",
+              detail: "Check how radius and spacing hold up across grouped content.",
+            },
+          ],
+      signalTitle: "Board metrics",
+      signalCards: isCompact
+        ? [{ title: "Card density", value: "Balanced" }]
+        : [
+            { title: "Card density", value: "Balanced" },
+            { title: "Style drift", value: "Low" },
+          ],
+    },
+  } as const;
+
+  const activeScene = previewScenes[previewMode];
+  const statCards = activeScene.statCards;
+  const taskCards = activeScene.taskCards;
+  const signalCards = activeScene.signalCards;
+  const resolvedOpenTask = taskCards.some((item) => item.title === openTask)
+    ? openTask
+    : null;
+
+  const bottomCards = [
+    {
+      title: "Marketing module",
+      text: "Headings, buttons, and supporting copy show how the theme handles emphasis.",
+    },
+    {
+      title: "Form module",
+      text: "Inputs, labels, and spacing reveal whether the interface still feels easy to use.",
+    },
+    {
+      title: "Metric module",
+      text: "Charts, stats, and utility cards show how accents carry into product surfaces.",
+    },
+  ];
+
   const signalGridStyle: CSSProperties = {
     gap: panelGap,
     gridTemplateColumns: compactLayout
@@ -348,8 +633,17 @@ export function LivePreview({ config }: LivePreviewProps) {
       : "repeat(auto-fit, minmax(162px, 1fr))",
   };
 
+  const previewTabs = [
+    { id: "builder", label: "Overview" },
+    { id: "prompt", label: "Reports" },
+    { id: "presets", label: "Boards" },
+  ] as const;
+
   return (
-    <section className="rounded-[34px] border border-white/70 bg-white/70 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+    <section
+      className="rounded-[34px] border border-white/70 bg-white/70 p-3 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl"
+      data-live-preview-root
+    >
       <div className="rounded-[30px] border border-slate-200/80 bg-slate-50/65 p-3 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
         <Card className="mb-3 gap-0 rounded-[24px] border-white/80 bg-white/75 py-0 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
           <CardContent className="flex items-center justify-between gap-4 px-4 py-3 text-sm text-slate-600">
@@ -361,6 +655,7 @@ export function LivePreview({ config }: LivePreviewProps) {
             <span className="font-medium">Live canvas</span>
             <Badge
               className="h-auto rounded-full border-slate-200/80 bg-white px-3 py-1 text-xs font-semibold text-slate-500"
+              style={{ borderRadius: badgeRoundness }}
               variant="outline"
             >
               Responsive preview
@@ -405,7 +700,10 @@ export function LivePreview({ config }: LivePreviewProps) {
               className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 transition-[border-radius,box-shadow,background-color]"
               style={{
                 ...panelStyle,
+                minHeight: toolbarHeight,
                 borderRadius: config.radius * 0.85,
+                paddingLeft: toolbarPaddingX,
+                paddingRight: toolbarPaddingX,
               }}
             >
               <div className="flex items-center gap-3">
@@ -416,12 +714,12 @@ export function LivePreview({ config }: LivePreviewProps) {
                     color: logoTextColor,
                   }}
                 >
-                  TF
+                  NS
                 </div>
                 <div>
-                  <p className="text-sm font-semibold">Theme Forge</p>
+                  <p className="text-sm font-semibold">Northstar</p>
                   <p className="text-xs" style={{ color: "var(--tf-surface-muted)" }}>
-                    Live system preview
+                    Sample workspace
                   </p>
                 </div>
               </div>
@@ -431,24 +729,89 @@ export function LivePreview({ config }: LivePreviewProps) {
                   className="flex items-center gap-4 text-sm font-medium"
                   style={{ color: "var(--tf-surface-muted)" }}
                 >
-                  <span>Builder</span>
-                  <span>Prompt</span>
-                  <span>Presets</span>
+                  {previewTabs.map((tab) => {
+                    const isActive = previewMode === tab.id;
+
+                    return (
+                      <Button
+                        className="h-auto px-3 py-1.5 shadow-none hover:bg-transparent"
+                        data-live-preview-tab={tab.id}
+                        key={tab.id}
+                        onClick={() => setPreviewMode(tab.id)}
+                        style={{
+                          borderColor: isActive ? borderColor : "transparent",
+                          backgroundColor: isActive
+                            ? secondaryButtonBackgroundColor
+                            : "transparent",
+                          color: isActive
+                            ? surfaceTextColor
+                            : "var(--tf-surface-muted)",
+                        }}
+                        type="button"
+                        variant="ghost"
+                      >
+                        {tab.label}
+                      </Button>
+                    );
+                  })}
                 </div>
               ) : null}
 
-              <Button
-                className="h-auto shrink-0 rounded-full px-4 py-2 text-sm font-medium shadow-none hover:bg-transparent"
-                style={{
-                  borderColor,
-                  backgroundColor: secondaryButtonBackgroundColor,
-                  color: secondaryButtonTextColor,
-                }}
-                type="button"
-                variant="outline"
-              >
-                {exportLabel}
-              </Button>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  className="h-auto shrink-0 rounded-full px-4 py-2 text-sm font-medium shadow-none"
+                  data-live-preview-action="export-tokens"
+                  style={{
+                    borderColor,
+                    backgroundColor: secondaryButtonBackgroundColor,
+                    color: secondaryButtonTextColor,
+                  }}
+                  type="button"
+                  variant="outline"
+                >
+                  {topActionLabel}
+                </Button>
+
+                {navCompact ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        aria-label="Open preview sections"
+                        className="size-9 shrink-0 rounded-full shadow-none"
+                        data-live-preview-nav-menu="trigger"
+                        style={{
+                          borderColor,
+                          backgroundColor: secondaryButtonBackgroundColor,
+                          color: secondaryButtonTextColor,
+                        }}
+                        type="button"
+                        variant="outline"
+                      >
+                        <AlignJustify className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-44">
+                      <DropdownMenuLabel>Preview sections</DropdownMenuLabel>
+                      <DropdownMenuRadioGroup
+                        onValueChange={(value) =>
+                          setPreviewMode(value as "builder" | "prompt" | "presets")
+                        }
+                        value={previewMode}
+                      >
+                        {previewTabs.map((tab) => (
+                          <DropdownMenuRadioItem
+                            data-live-preview-tab={tab.id}
+                            key={tab.id}
+                            value={tab.id}
+                          >
+                            {tab.label}
+                          </DropdownMenuRadioItem>
+                        ))}
+                      </DropdownMenuRadioGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
+              </div>
             </nav>
 
             <div
@@ -461,16 +824,17 @@ export function LivePreview({ config }: LivePreviewProps) {
                     className="mb-5 h-auto rounded-full px-4 py-2 text-sm font-medium"
                     style={{
                       borderColor,
+                      borderRadius: badgeRoundness,
                       backgroundColor: secondaryButtonBackgroundColor,
                       color: surfaceTextColor,
                     }}
                     variant="outline"
-                    >
+                  >
                     <Sparkles
                       className="size-4"
                       style={{ color: "var(--tf-accent)" }}
                     />
-                    {syncBadgeLabel}
+                    {activeScene.syncLabel}
                   </Badge>
 
                   <h3
@@ -479,10 +843,10 @@ export function LivePreview({ config }: LivePreviewProps) {
                       fontSize: `${heroHeadingSize}rem`,
                       lineHeight: 1,
                       color: "var(--tf-canvas-text)",
+                      maxWidth: `${heroContentMaxWidth}px`,
                     }}
                   >
-                    Ship interfaces that feel intentional before you write the
-                    rest of the app.
+                    {activeScene.heroHeading}
                   </h3>
 
                   <p
@@ -490,39 +854,36 @@ export function LivePreview({ config }: LivePreviewProps) {
                     style={{
                       color: "var(--tf-canvas-muted)",
                       fontSize: `${heroCopySize}rem`,
+                      maxWidth: `${heroContentMaxWidth}px`,
                     }}
                   >
-                    Adjust the theme once and apply it to cards, inputs, CTAs,
-                    stats, and future prompt output without juggling a dozen
-                    separate style decisions.
+                    {activeScene.heroCopy}
                   </p>
 
                   <div className="mt-7 flex flex-wrap gap-3">
                     <Button
-                      className="h-auto px-0 py-0 shadow-none hover:bg-transparent hover:brightness-[1.02]"
+                      className="h-auto px-0 py-0 shadow-none"
+                      data-live-preview-action="export-bundle"
                       style={buttonStyle}
                       type="button"
                       variant="ghost"
                     >
-                      Generate prompt
+                      {primaryActionLabel}
                     </Button>
                     <Button
-                      className="h-auto px-0 py-0 shadow-none hover:bg-transparent"
+                      className="h-auto px-0 py-0 shadow-none"
+                      data-live-preview-action="preview-presets"
                       style={secondaryButtonStyle}
                       type="button"
                       variant="ghost"
                     >
-                      {previewButtonLabel}
+                      {secondaryActionLabel}
                     </Button>
                   </div>
                 </div>
 
                 <div className="grid" style={statsGridStyle}>
-                  {[
-                    { label: "Theme iterations", value: "12" },
-                    { label: "Prompt confidence", value: "94%" },
-                    { label: "Components synced", value: "16" },
-                  ].map((stat) => (
+                  {statCards.map((stat) => (
                     <Card
                       className="min-w-0 overflow-hidden gap-0 rounded-[24px] py-0 ring-0"
                       key={stat.label}
@@ -530,7 +891,10 @@ export function LivePreview({ config }: LivePreviewProps) {
                     >
                       <CardContent
                         className="min-w-0"
-                        style={{ padding: innerCardPadding }}
+                        style={{
+                          padding: innerCardPadding,
+                          minHeight: tileMinHeight,
+                        }}
                       >
                         <p
                           className="break-words text-sm"
@@ -558,12 +922,12 @@ export function LivePreview({ config }: LivePreviewProps) {
                   <CardContent style={{ padding: outerPanelPadding }}>
                     <div className="mb-4 flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold">Control pass</p>
+                        <p className="text-sm font-semibold">{activeScene.panelTitle}</p>
                         <p
                           className="mt-1 text-sm"
                           style={{ color: "var(--tf-surface-muted)" }}
                         >
-                          Sample panel with forms and tasks
+                          {activeScene.panelSubtitle}
                         </p>
                       </div>
                       <Bell
@@ -574,57 +938,82 @@ export function LivePreview({ config }: LivePreviewProps) {
 
                     <div className="relative">
                       <Search
-                        className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2"
-                        style={{ color: "var(--tf-input-muted)" }}
+                        className="pointer-events-none absolute top-1/2 size-4 -translate-y-1/2"
+                        style={{
+                          color: "var(--tf-input-muted)",
+                          left: inputIconInset,
+                        }}
                       />
                       <Input
                         className="h-auto bg-transparent text-sm placeholder:text-[var(--tf-input-muted)] focus-visible:ring-0"
-                        placeholder="Search tokens or components"
+                        onChange={(event) => setSearchValue(event.target.value)}
+                        placeholder={activeScene.searchPlaceholder}
+                        value={searchValue}
                         style={inputStyle}
                       />
                     </div>
 
                     <div className="mt-4 space-y-3">
-                      {[
-                        {
-                          title: "Hero polish pass",
-                          detail: "Align gradients, bump CTA contrast, export prompt.",
-                        },
-                        {
-                          title: "Dashboard variation",
-                          detail: "Test denser spacing without breaking readability.",
-                        },
-                      ].map((item) => (
-                        <Card
-                          className="min-w-0 overflow-hidden gap-0 rounded-[22px] py-0 ring-0"
+                      {taskCards.map((item) => (
+                        <Collapsible
                           key={item.title}
-                          style={{
-                            border: `1px solid ${softBorderColor}`,
-                            backgroundColor: nestedSurfaceColor,
-                            color: nestedTextColor,
-                          }}
+                          onOpenChange={(open) =>
+                            setOpenTask(open ? item.title : null)
+                          }
+                          open={resolvedOpenTask === item.title}
                         >
-                          <CardContent
-                            className="min-w-0"
-                            style={{ padding: innerCardPadding }}
+                          <Card
+                            className="min-w-0 overflow-hidden gap-0 rounded-[22px] py-0 ring-0"
+                            style={{
+                              border: `1px solid ${softBorderColor}`,
+                              backgroundColor: nestedSurfaceColor,
+                              color: nestedTextColor,
+                            }}
                           >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="min-w-0">
-                                <p className="font-medium">{item.title}</p>
-                                <p
-                                  className="mt-2 break-words text-sm leading-6"
-                                  style={{ color: "var(--tf-card-muted)" }}
+                            <CardContent
+                              className="min-w-0"
+                              style={{ padding: innerCardPadding }}
+                            >
+                              <CollapsibleTrigger asChild>
+                                <button
+                                  className="flex w-full items-start justify-between gap-4 text-left"
+                                  data-live-preview-task-trigger={item.title}
+                                  type="button"
                                 >
-                                  {item.detail}
-                                </p>
-                              </div>
-                              <ChevronRight
-                                className="size-4 shrink-0"
-                                style={{ color: "var(--tf-card-muted)" }}
-                              />
-                            </div>
-                          </CardContent>
-                        </Card>
+                                  <div className="min-w-0">
+                                    <p className="font-medium">{item.title}</p>
+                                  </div>
+                                  <ChevronRight
+                                    className="size-4 shrink-0 transition-transform duration-200"
+                                    style={{
+                                      color: "var(--tf-card-muted)",
+                                      transform:
+                                        resolvedOpenTask === item.title
+                                          ? "rotate(90deg)"
+                                          : "rotate(0deg)",
+                                    }}
+                                  />
+                                </button>
+                              </CollapsibleTrigger>
+
+                              {resolvedOpenTask === item.title ? (
+                                <CollapsibleContent
+                                  className="overflow-hidden data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-1"
+                                  forceMount
+                                >
+                                  <div className="pt-3">
+                                    <p
+                                      className="break-words text-sm leading-6"
+                                      style={{ color: "var(--tf-card-muted)" }}
+                                    >
+                                      {item.detail}
+                                    </p>
+                                  </div>
+                                </CollapsibleContent>
+                              ) : null}
+                            </CardContent>
+                          </Card>
+                        </Collapsible>
                       ))}
                     </div>
                   </CardContent>
@@ -639,47 +1028,41 @@ export function LivePreview({ config }: LivePreviewProps) {
                 >
                   <CardContent style={{ padding: outerPanelPadding }}>
                     <div className="mb-4 flex items-center justify-between">
-                      <p className="text-sm font-semibold">Signal cluster</p>
+                      <p className="text-sm font-semibold">{activeScene.signalTitle}</p>
                       <Star
                         className="size-5"
                         style={{ color: "var(--tf-accent)" }}
                       />
                     </div>
                     <div className="grid" style={signalGridStyle}>
-                      {[
-                        {
-                          title: "Accent usage",
-                          value: "Focused",
-                        },
-                        {
-                          title: "Prompt clarity",
-                          value: "High",
-                        },
-                      ].map((card) => (
+                      {signalCards.map((card) => (
                         <Card
                           className="min-w-0 overflow-hidden gap-0 rounded-[22px] py-0 ring-0"
                           key={card.title}
                           style={{
                             backgroundColor:
-                              card.title === "Accent usage"
+                              card.title === "Launch status"
                                 ? accentTintColor
                                 : buttonTintColor,
                             border: `1px solid ${softBorderColor}`,
                             color:
-                              card.title === "Accent usage"
+                              card.title === "Launch status"
                                 ? accentTintTextColor
                                 : buttonTintTextColor,
                           }}
                         >
                           <CardContent
                             className="min-w-0"
-                            style={{ padding: innerCardPadding }}
+                            style={{
+                              padding: innerCardPadding,
+                              minHeight: tileMinHeight,
+                            }}
                           >
                             <p
                               className="break-words text-sm"
                               style={{
                                 color:
-                                  card.title === "Accent usage"
+                                  card.title === "Launch status"
                                     ? accentTintMutedColor
                                     : buttonTintMutedColor,
                               }}
@@ -698,58 +1081,76 @@ export function LivePreview({ config }: LivePreviewProps) {
               </div>
             </div>
 
-            <div className="grid" style={bottomGridStyle}>
-              {[
-                {
-                  title: "Hero card",
-                  text: "Your chosen radius and shadows shape the whole product tone.",
-                },
-                {
-                  title: "Input module",
-                  text: "Typography, color, and density stay consistent with forms.",
-                },
-                {
-                  title: "Stats card",
-                  text: "Accents and surfaces extend into dashboards and analytics.",
-                },
-              ].map((card, index) => (
-                <Card
-                  className="min-w-0 overflow-hidden gap-0 rounded-[26px] py-0 ring-0"
-                  key={card.title}
-                  style={{
-                    ...panelStyle,
-                    backgroundColor:
-                      index === 1
-                        ? elevatedSurfaceColor
-                        : nestedSurfaceColor,
-                    color: nestedTextColor,
-                  }}
-                >
-                  <CardContent
-                    className="min-w-0"
-                    style={{ padding: outerPanelPadding }}
+            {!isCompact ? (
+              <div className="grid" style={bottomGridStyle}>
+                {bottomCards.map((card, index) => (
+                  <Card
+                    className="min-w-0 overflow-hidden gap-0 rounded-[26px] py-0 ring-0"
+                    key={card.title}
+                    style={{
+                      ...panelStyle,
+                      backgroundColor:
+                        index === 1
+                          ? elevatedSurfaceColor
+                          : nestedSurfaceColor,
+                      color: nestedTextColor,
+                    }}
                   >
-                    <div
-                      className="mb-4 h-2.5 rounded-full"
+                    <CardContent
+                      className="min-w-0"
                       style={{
-                        width: `${62 + index * 12}%`,
-                        background: `linear-gradient(90deg, ${config.accentColor}, ${hexToRgba(
-                          config.buttonColor,
-                          0.7,
-                        )})`,
+                        padding: outerPanelPadding,
+                        minHeight: tileMinHeight,
                       }}
-                    />
-                    <p className="font-semibold">{card.title}</p>
-                    <p
-                      className="mt-2 break-words text-sm leading-6"
-                      style={{ color: "var(--tf-card-muted)" }}
                     >
-                      {card.text}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      <div
+                        className="mb-4 h-2.5 rounded-full"
+                        style={{
+                          width: `${62 + index * 12}%`,
+                          background: `linear-gradient(90deg, ${config.accentColor}, ${hexToRgba(
+                            config.buttonColor,
+                            0.7,
+                          )})`,
+                        }}
+                      />
+                      <p className="font-semibold">{card.title}</p>
+                      <p
+                        className="mt-2 break-words text-sm leading-6"
+                        style={{ color: "var(--tf-card-muted)" }}
+                      >
+                        {card.text}
+                      </p>
+                      {previewMode === "prompt" && index === 0 ? (
+                        <div
+                          className="mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium"
+                          style={{
+                            backgroundColor: accentTintColor,
+                            color: accentTintTextColor,
+                            borderRadius: badgeRoundness,
+                          }}
+                        >
+                          <CheckCircle2 className="size-3.5" />
+                          Saved report view
+                        </div>
+                      ) : null}
+                      {previewMode === "presets" && index === 2 ? (
+                        <div
+                          className="mt-4 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium"
+                          style={{
+                            backgroundColor: buttonTintColor,
+                            color: buttonTintTextColor,
+                            borderRadius: badgeRoundness,
+                          }}
+                        >
+                          <CheckCircle2 className="size-3.5" />
+                          Board density on
+                        </div>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : null}
           </div>
         </motion.div>
       </div>

@@ -1,26 +1,66 @@
 "use client";
 
-import { Braces, Layers3, Sparkles, WandSparkles } from "lucide-react";
+import { Braces, Layers3, Sparkles } from "lucide-react";
 import { motion } from "motion/react";
+import { type MouseEvent } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { getReadableTextColor, hexToRgba } from "@/lib/theme-presets";
+import { smoothScrollToHash } from "@/lib/smooth-scroll";
 
 type HeroProps = {
   accentColor: string;
   activePresetName: string;
+  primaryCtaHref?: string;
+  primaryCtaLabel?: string;
+  secondaryCtaHref?: string;
+  secondaryCtaLabel?: string;
 };
 
-export function Hero({ accentColor, activePresetName }: HeroProps) {
+export function Hero({
+  accentColor,
+  activePresetName,
+  primaryCtaHref = "#builder",
+  primaryCtaLabel = "Start Forging",
+  secondaryCtaHref = "#presets",
+  secondaryCtaLabel = "See Presets",
+}: HeroProps) {
+  const handleAnchorClick = (event: MouseEvent<HTMLAnchorElement>) => {
+    const href = event.currentTarget.getAttribute("href");
+    if (!href || !href.startsWith("#")) {
+      return;
+    }
+
+    if (smoothScrollToHash(href)) {
+      event.preventDefault();
+    }
+  };
+
+  const featureCards = [
+    {
+      icon: Sparkles,
+      title: "Built for developers",
+      text: "Keep websites, dashboards, and app screens visually consistent while AI writes the UI.",
+    },
+    {
+      icon: Braces,
+      title: "Files for your stack",
+      text: "Generate theme files and AI instructions that match Tailwind, shadcn/ui, MUI, or plain CSS workflows.",
+    },
+    {
+      icon: Layers3,
+      title: "Preset-first workflow",
+      text: "Start from a visual direction, see the product change instantly, then open the full forge to refine it.",
+    },
+  ];
+
   return (
     <motion.section
       animate={{ opacity: 1, y: 0 }}
@@ -35,18 +75,20 @@ export function Hero({ accentColor, activePresetName }: HeroProps) {
             variant="outline"
           >
             <Sparkles className="size-4" style={{ color: accentColor }} />
-            Live theme controls and prompt output
+            For developers building with AI
           </Badge>
 
           <div className="space-y-5">
             <h1 className="balanced-text max-w-4xl font-[family-name:var(--font-geist)] text-5xl font-semibold tracking-[-0.06em] text-slate-950 sm:text-6xl lg:text-7xl">
-              Build a visual theme your AI can actually follow.
+              <span className="block">Stop fighting AI on styles.</span>
+              <span className="block">Give it a system instead.</span>
             </h1>
             <p className="max-w-2xl text-lg leading-8 text-slate-600 sm:text-xl">
-              Theme Forge lets you sculpt spacing, radius, typography, shadows,
-              and gradients in real time, then turns that system into a
-              structured prompt you can hand to Claude, Cursor, ChatGPT, or
-              your own model.
+              Theme Forge helps developers keep websites and applications
+              visually consistent while AI builds the interface. Pick a visual
+              direction, generate config files for your tech stack, and tell
+              Claude, Cursor, ChatGPT, or your own model to build on top of the
+              same theme instead of making up new styles every screen.
             </p>
           </div>
 
@@ -61,7 +103,13 @@ export function Hero({ accentColor, activePresetName }: HeroProps) {
                 boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22)",
               }}
             >
-              <a href="#builder">Start Building</a>
+              {primaryCtaHref.startsWith("#") ? (
+                <a href={primaryCtaHref} onClick={handleAnchorClick}>
+                  {primaryCtaLabel}
+                </a>
+              ) : (
+                <a href={primaryCtaHref}>{primaryCtaLabel}</a>
+              )}
             </Button>
             <Button
               asChild
@@ -69,29 +117,19 @@ export function Hero({ accentColor, activePresetName }: HeroProps) {
               size="lg"
               variant="outline"
             >
-              <a href="#presets">See Presets</a>
+              {secondaryCtaHref.startsWith("#") ? (
+                <a href={secondaryCtaHref} onClick={handleAnchorClick}>
+                  {secondaryCtaLabel}
+                </a>
+              ) : (
+                <a href={secondaryCtaHref}>{secondaryCtaLabel}</a>
+              )}
             </Button>
           </div>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-3">
-          {[
-            {
-              icon: Layers3,
-              title: "Single theme object",
-              text: "Everything flows from one config instead of scattered styles.",
-            },
-            {
-              icon: WandSparkles,
-              title: "Live design system",
-              text: "Cards, navigation, buttons, and form controls react instantly.",
-            },
-            {
-              icon: Braces,
-              title: "Prompt-ready output",
-              text: "Generate instructions that preserve the exact theme in code.",
-            },
-          ].map(({ icon: Icon, title, text }) => (
+          {featureCards.map(({ icon: Icon, title, text }) => (
             <Card
               className="gap-0 rounded-[24px] border-white/80 bg-white/72 py-0 shadow-[0_16px_40px_rgba(15,23,42,0.06)]"
               key={title}
@@ -101,9 +139,7 @@ export function Hero({ accentColor, activePresetName }: HeroProps) {
                 <CardTitle className="text-sm font-semibold text-slate-950">
                   {title}
                 </CardTitle>
-                <CardDescription className="text-sm leading-6 text-slate-600">
-                  {text}
-                </CardDescription>
+                <p className="text-sm leading-6 text-slate-600">{text}</p>
               </CardHeader>
             </Card>
           ))}
@@ -128,10 +164,10 @@ export function Hero({ accentColor, activePresetName }: HeroProps) {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
-                  Theme DNA
+                  How it works
                 </p>
                 <p className="mt-1 text-lg font-semibold text-slate-950">
-                  Active preset: {activePresetName}
+                  One theme system, reused everywhere
                 </p>
               </div>
               <Badge
@@ -142,7 +178,7 @@ export function Hero({ accentColor, activePresetName }: HeroProps) {
                   className="size-2 rounded-full"
                   style={{ backgroundColor: accentColor }}
                 />
-                Updating live
+                Live preset
               </Badge>
             </div>
 
@@ -150,53 +186,45 @@ export function Hero({ accentColor, activePresetName }: HeroProps) {
               <Card className="gap-0 rounded-[28px] border-white/70 bg-[#0b1020] py-0 text-white shadow-[0_18px_50px_rgba(15,23,42,0.18)]">
                 <CardContent className="p-5">
                   <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">
-                    Prompt Output
+                    AI build brief
                   </p>
-                  <Textarea
-                    className="mt-4 min-h-[150px] resize-none border-white/10 bg-black/18 font-[family-name:var(--font-mono)] text-xs leading-6 text-white/82 focus-visible:border-white/20 focus-visible:ring-white/10"
-                    readOnly
-                    value={`SYSTEM:
-Apply the selected theme to every
-surface, CTA, card, and dashboard.
-
-TOKENS:
-radius, spacing, font, text, bg,
-surface, accent, button, gradient`}
-                  />
+                  <div className="mt-4 space-y-3 rounded-[22px] border border-white/10 bg-black/18 p-4 text-sm leading-6 text-white/82">
+                    <p>Build the app using the supplied theme files.</p>
+                    <p>Keep colors, radius, spacing, and typography consistent.</p>
+                    <p>Do not invent new styling rules outside the theme system.</p>
+                  </div>
                 </CardContent>
               </Card>
 
               <Card className="gap-0 rounded-[28px] border-white/70 bg-white/82 py-0 shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
                 <CardContent className="space-y-4 p-5">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-slate-500">Token stack</span>
-                    <span className="font-semibold text-slate-950">Ready</span>
+                    <span className="font-medium text-slate-500">Output bundle</span>
+                    <span className="font-semibold text-slate-950">Stack-aware</span>
                   </div>
                   <div className="space-y-3">
-                    {["Typography", "Spacing", "Surfaces", "Motion"].map(
-                      (label, index) => (
-                        <div key={label}>
-                          <div className="mb-2 flex items-center justify-between text-sm">
-                            <span className="text-slate-600">{label}</span>
-                            <span className="font-medium text-slate-950">
-                              {index === 0 ? "Adaptive" : "Synced"}
-                            </span>
-                          </div>
-                          <div className="h-2 rounded-full bg-slate-200/80">
-                            <div
-                              className="h-full rounded-full"
-                              style={{
-                                width: `${74 + index * 7}%`,
-                                background: `linear-gradient(90deg, ${accentColor}, ${hexToRgba(
-                                  accentColor,
-                                  0.6,
-                                )})`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      ),
-                    )}
+                    {[
+                      "themeforge.json",
+                      "theme.css",
+                      "component-rules.md",
+                      "prompt.md",
+                    ].map((label, index) => (
+                      <div
+                        className="flex items-center justify-between rounded-[18px] border border-slate-200/80 bg-white/88 px-3 py-3 text-sm"
+                        key={label}
+                      >
+                        <span className="font-medium text-slate-700">{label}</span>
+                        <span
+                          className="rounded-full px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
+                          style={{
+                            backgroundColor: hexToRgba(accentColor, 0.14),
+                            color: index === 0 ? "#0f172a" : "#334155",
+                          }}
+                        >
+                          Ready
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
@@ -204,9 +232,9 @@ surface, accent, button, gradient`}
 
             <div className="grid gap-3 sm:grid-cols-3">
               {[
-                "Radius + shadow",
-                "Prompt aligned",
-                "Preview synced",
+                "Preset selected",
+                "Stack attached",
+                "UI stays consistent",
               ].map((label, index) => (
                 <Card
                   className="gap-0 rounded-[22px] border-white/75 bg-white/82 py-0 shadow-[0_14px_36px_rgba(15,23,42,0.06)]"
@@ -216,10 +244,10 @@ surface, accent, button, gradient`}
                     <p className="font-semibold text-slate-950">{label}</p>
                     <p className="mt-1">
                       {index === 0
-                        ? "Control the tactile feel."
+                        ? activePresetName
                         : index === 1
-                          ? "Auto-generated for your model."
-                          : "Changes appear instantly."}
+                          ? "Tailwind, shadcn/ui, MUI, or HTML + CSS"
+                          : "AI keeps building against the same theme rules."}
                     </p>
                   </CardContent>
                 </Card>

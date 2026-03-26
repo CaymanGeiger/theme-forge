@@ -20,7 +20,23 @@ export const themePresets: ThemePreset[] = [
       fontFamily: "geist",
       fontScale: 104,
       containerWidth: 88,
+      panelPadding: 20,
+      cardPadding: 16,
+      moduleGap: 14,
+      toolbarHeight: 58,
+      toolbarPaddingX: 24,
+      buttonHeight: 46,
+      buttonPaddingX: 22,
+      inputHeight: 52,
+      inputPaddingX: 16,
       buttonRoundness: 999,
+      inputRoundness: 22,
+      badgeRoundness: 999,
+      heroContentMaxWidth: 620,
+      tileMinHeight: 132,
+      surfaceContrast: 70,
+      borderStrength: 48,
+      accentTintStrength: 34,
       textColor: "#111827",
       mutedTextColor: "#667085",
       backgroundColor: "#f7f8fc",
@@ -45,7 +61,23 @@ export const themePresets: ThemePreset[] = [
       fontFamily: "inter",
       fontScale: 106,
       containerWidth: 90,
+      panelPadding: 22,
+      cardPadding: 18,
+      moduleGap: 16,
+      toolbarHeight: 60,
+      toolbarPaddingX: 28,
+      buttonHeight: 48,
+      buttonPaddingX: 24,
+      inputHeight: 54,
+      inputPaddingX: 18,
       buttonRoundness: 999,
+      inputRoundness: 24,
+      badgeRoundness: 999,
+      heroContentMaxWidth: 580,
+      tileMinHeight: 144,
+      surfaceContrast: 82,
+      borderStrength: 44,
+      accentTintStrength: 58,
       textColor: "#f8fafc",
       mutedTextColor: "#94a3b8",
       backgroundColor: "#09111f",
@@ -70,7 +102,23 @@ export const themePresets: ThemePreset[] = [
       fontFamily: "poppins",
       fontScale: 110,
       containerWidth: 84,
+      panelPadding: 18,
+      cardPadding: 15,
+      moduleGap: 13,
+      toolbarHeight: 56,
+      toolbarPaddingX: 22,
+      buttonHeight: 44,
+      buttonPaddingX: 21,
+      inputHeight: 50,
+      inputPaddingX: 15,
       buttonRoundness: 26,
+      inputRoundness: 22,
+      badgeRoundness: 18,
+      heroContentMaxWidth: 520,
+      tileMinHeight: 124,
+      surfaceContrast: 88,
+      borderStrength: 52,
+      accentTintStrength: 72,
       textColor: "#f8faff",
       mutedTextColor: "#bcc7ff",
       backgroundColor: "#09051a",
@@ -95,7 +143,23 @@ export const themePresets: ThemePreset[] = [
       fontFamily: "playfair",
       fontScale: 112,
       containerWidth: 82,
+      panelPadding: 22,
+      cardPadding: 18,
+      moduleGap: 16,
+      toolbarHeight: 60,
+      toolbarPaddingX: 28,
+      buttonHeight: 48,
+      buttonPaddingX: 24,
+      inputHeight: 52,
+      inputPaddingX: 18,
       buttonRoundness: 999,
+      inputRoundness: 20,
+      badgeRoundness: 999,
+      heroContentMaxWidth: 560,
+      tileMinHeight: 146,
+      surfaceContrast: 66,
+      borderStrength: 40,
+      accentTintStrength: 30,
       textColor: "#241b19",
       mutedTextColor: "#6f625c",
       backgroundColor: "#f7efe6",
@@ -120,7 +184,23 @@ export const themePresets: ThemePreset[] = [
       fontFamily: "manrope",
       fontScale: 98,
       containerWidth: 94,
+      panelPadding: 16,
+      cardPadding: 14,
+      moduleGap: 12,
+      toolbarHeight: 52,
+      toolbarPaddingX: 20,
+      buttonHeight: 42,
+      buttonPaddingX: 18,
+      inputHeight: 46,
+      inputPaddingX: 14,
       buttonRoundness: 20,
+      inputRoundness: 16,
+      badgeRoundness: 18,
+      heroContentMaxWidth: 640,
+      tileMinHeight: 120,
+      surfaceContrast: 78,
+      borderStrength: 58,
+      accentTintStrength: 42,
       textColor: "#d8e0ef",
       mutedTextColor: "#7f8a9f",
       backgroundColor: "#0f172a",
@@ -145,7 +225,23 @@ export const themePresets: ThemePreset[] = [
       fontFamily: "manrope",
       fontScale: 103,
       containerWidth: 86,
+      panelPadding: 20,
+      cardPadding: 16,
+      moduleGap: 15,
+      toolbarHeight: 58,
+      toolbarPaddingX: 26,
+      buttonHeight: 46,
+      buttonPaddingX: 22,
+      inputHeight: 52,
+      inputPaddingX: 16,
       buttonRoundness: 999,
+      inputRoundness: 24,
+      badgeRoundness: 999,
+      heroContentMaxWidth: 600,
+      tileMinHeight: 138,
+      surfaceContrast: 68,
+      borderStrength: 42,
+      accentTintStrength: 46,
       textColor: "#2a1f19",
       mutedTextColor: "#7a685d",
       backgroundColor: "#fff6e7",
@@ -399,11 +495,27 @@ export function buildThemePrompt(
 CSS variables
 :root {
   --tf-radius: ${config.radius}px;
+  --tf-panel-padding: ${config.panelPadding}px;
+  --tf-card-padding: ${config.cardPadding}px;
+  --tf-module-gap: ${config.moduleGap}px;
+  --tf-toolbar-height: ${config.toolbarHeight}px;
+  --tf-toolbar-padding-x: ${config.toolbarPaddingX}px;
   --tf-button-radius: ${config.buttonRoundness}px;
+  --tf-button-height: ${config.buttonHeight}px;
+  --tf-button-padding-x: ${config.buttonPaddingX}px;
+  --tf-input-radius: ${config.inputRoundness}px;
+  --tf-input-height: ${config.inputHeight}px;
+  --tf-input-padding-x: ${config.inputPaddingX}px;
+  --tf-badge-radius: ${config.badgeRoundness}px;
+  --tf-hero-content-max-width: ${config.heroContentMaxWidth}px;
+  --tf-tile-min-height: ${config.tileMinHeight}px;
   --tf-text: ${config.textColor};
   --tf-muted: ${config.mutedTextColor};
   --tf-bg: ${config.backgroundColor};
   --tf-surface: ${config.surfaceColor};
+  --tf-surface-contrast: ${config.surfaceContrast};
+  --tf-border-strength: ${config.borderStrength};
+  --tf-accent-tint-strength: ${config.accentTintStrength};
   --tf-accent: ${config.accentColor};
   --tf-button: ${config.buttonColor};
 }`
@@ -416,6 +528,10 @@ Implementation rules
 - Apply the tokens above before styling any component details.
 - Typography should use ${getThemeFontLabel(config.fontFamily)} at roughly ${config.fontScale}% scale.
 - Cards should feel ${describeShadow(config.shadow)} with ${describeSpacing(config.spacing)} spacing.
+- Major toolbars should target about ${config.toolbarHeight}px height with ${config.toolbarPaddingX}px side padding.
+- Badges and utility pills should use about ${config.badgeRoundness}px radius.
+- Hero-style copy blocks should stay near ${config.heroContentMaxWidth}px max width.
+- Stats and summary tiles should keep at least ${config.tileMinHeight}px height.
 - Use accent color for highlights, focus states, charts, badges, and premium moments.
 - Use button color for primary CTAs and keep secondary actions lower contrast.
 - Match radius across cards, inputs, and overlays, while buttons use their own radius token.
@@ -434,10 +550,26 @@ ${JSON.stringify(
     fontFamily: getThemeFontLabel(config.fontFamily),
     fontScale: `${config.fontScale}%`,
     radius: `${config.radius}px`,
+    panelPadding: `${config.panelPadding}px`,
+    cardPadding: `${config.cardPadding}px`,
+    moduleGap: `${config.moduleGap}px`,
+    toolbarHeight: `${config.toolbarHeight}px`,
+    toolbarPaddingX: `${config.toolbarPaddingX}px`,
     buttonRadius: `${config.buttonRoundness}px`,
+    buttonHeight: `${config.buttonHeight}px`,
+    buttonPaddingX: `${config.buttonPaddingX}px`,
+    inputRadius: `${config.inputRoundness}px`,
+    inputHeight: `${config.inputHeight}px`,
+    inputPaddingX: `${config.inputPaddingX}px`,
+    badgeRoundness: `${config.badgeRoundness}px`,
+    heroContentMaxWidth: `${config.heroContentMaxWidth}px`,
+    tileMinHeight: `${config.tileMinHeight}px`,
     shadowIntensity: `${config.shadow}/100`,
     spacingDensity: `${config.spacing}px`,
     containerWidth: `${config.containerWidth}%`,
+    surfaceContrast: `${config.surfaceContrast}/100`,
+    borderStrength: `${config.borderStrength}/100`,
+    accentTintStrength: `${config.accentTintStrength}/100`,
     textColor: config.textColor,
     mutedTextColor: config.mutedTextColor,
     backgroundColor: config.backgroundColor,
