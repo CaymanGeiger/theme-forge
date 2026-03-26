@@ -90,20 +90,20 @@ export function HomeNav() {
           )}
         >
           <a className="group flex items-center gap-3" href="#top" onClick={handleAnchorClick}>
-            <div className="relative">
+            <div className="relative min-w-[10.25rem] pr-2 sm:min-w-[11.1rem]">
               <motion.span
                 animate={{ opacity: 1, scale: 1 }}
                 className="absolute inset-0 rounded-full bg-[radial-gradient(circle,rgba(79,124,255,0.34),transparent_68%)] blur-xl"
                 initial={{ opacity: 0, scale: 0.72 }}
                 transition={{ duration: 0.9, ease: "easeOut", delay: 0.1 }}
               />
-              <div className="relative flex flex-col leading-none">
-                <span className="text-[0.65rem] font-semibold uppercase tracking-[0.34em] text-slate-500">
+              <div className="relative flex min-w-fit flex-col leading-none">
+                <span className="text-[0.72rem] font-semibold uppercase tracking-[0.36em] text-slate-500 sm:text-[0.78rem]">
                   Theme
                 </span>
                 <motion.span
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  className="brand-spectrum font-[family-name:var(--font-geist)] text-2xl font-semibold tracking-[-0.08em] sm:text-[1.75rem]"
+                  className="brand-spectrum inline-block font-[family-name:var(--font-geist)] text-[2.1rem] font-semibold tracking-[-0.08em] sm:text-[2.3rem]"
                   initial={{ opacity: 0, y: 10, filter: "blur(10px)" }}
                   transition={{ duration: 0.72, ease: "easeOut", delay: 0.06 }}
                 >
@@ -119,16 +119,16 @@ export function HomeNav() {
                 <Button
                   asChild
                   className={cn(
-                    "rounded-full border px-4 text-sm font-medium shadow-none transition-all duration-300 hover:bg-white/70",
+                    "rounded-full border px-5 text-[0.98rem] font-medium shadow-none transition-all duration-300 hover:bg-white/70 sm:px-5.5 sm:text-[1.02rem]",
                     isScrolled
-                      ? "h-9 border-white/30 bg-white/26 text-slate-700"
-                      : "h-10 border-white/55 bg-white/56 text-slate-800",
+                      ? "h-10 border-white/30 bg-white/26 text-slate-700"
+                      : "h-11 border-white/55 bg-white/56 text-slate-800",
                   )}
                   variant="outline"
                 >
                   <a href="#demo" onClick={handleAnchorClick}>
                     Demo
-                    <ChevronDown className="size-4" />
+                    <ChevronDown className="size-[1.05rem]" />
                   </a>
                 </Button>
               </HoverCardTrigger>
