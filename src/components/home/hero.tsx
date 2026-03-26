@@ -148,11 +148,12 @@ export function Hero({
 
       <motion.div
         animate={{ opacity: 1, x: 0 }}
+        className="lg:self-start"
         initial={{ opacity: 0, x: 16 }}
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.08 }}
       >
         <Card
-          className="relative h-full gap-0 overflow-hidden rounded-[34px] border-white/80 py-0 shadow-[0_22px_80px_rgba(15,23,42,0.1)]"
+          className="relative gap-0 overflow-hidden rounded-[34px] border-white/80 py-0 shadow-[0_22px_80px_rgba(15,23,42,0.1)]"
           style={{
             background: `radial-gradient(circle at top right, ${hexToRgba(
               accentColor,
@@ -160,7 +161,7 @@ export function Hero({
             )}, transparent 34%), linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.74))`,
           }}
         >
-          <CardContent className="relative flex h-full flex-col gap-4 p-5">
+          <CardContent className="relative flex flex-col gap-4 p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.24em] text-slate-500">
